@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Development / notebooks
+notebooks/
+scripts/
+tests/
+docs/
+data/
+
+# Git
+.git/
+.gitignore
