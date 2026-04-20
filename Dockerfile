@@ -20,10 +20,11 @@ WORKDIR /app
 COPY --from=deps /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=deps /usr/local/bin /usr/local/bin
 
-# Copy application code
+# Copy application code and bundled session data
 COPY src/ ./src/
+COPY data/ ./data/
 
-# Sessions are mounted at runtime — not baked into the image
+# Keep a mount point so local docker-compose can override bundled data
 VOLUME ["/app/data"]
 
 ENV PYTHONPATH=/app/src \

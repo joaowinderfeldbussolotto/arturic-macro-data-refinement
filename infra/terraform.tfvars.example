@@ -1,0 +1,16 @@
+aws_region        = "us-east-1"
+name              = "arturic-macro-data-refinement"
+image_tag         = "latest"
+use_image_digest  = true
+ecr_force_delete  = true
+apprunner_cpu     = "1024"
+apprunner_memory  = "2048"
+api_stage_name    = "prod"
+
+usage_plan_rate_limit   = 100
+usage_plan_burst_limit  = 200
+usage_plan_quota_limit  = 100000
+usage_plan_quota_period = "MONTH"
+
+# Optional fixed key:
+# api_key_value = "replace-with-your-own-secure-api-key"

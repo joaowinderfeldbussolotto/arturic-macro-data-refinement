@@ -88,6 +88,23 @@ python -m scripts.run_pipeline --sessions data
 python -m pytest tests/ -v
 ```
 
+## AWS Deployment (Terraform)
+
+The complete AWS deployment setup (ECR + App Runner + API Gateway REST) is in:
+
+- [infra](infra)
+- [infra/DEPLOY.md](infra/DEPLOY.md)
+
+Quick start:
+
+```bash
+cd infra
+terraform init
+terraform apply -target=module.ecr
+# push the image to ECR
+terraform apply
+```
+
 ## Validation rules
 
 | # | Rule | Source |

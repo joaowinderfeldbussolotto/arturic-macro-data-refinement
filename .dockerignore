@@ -9,7 +9,6 @@ notebooks/
 scripts/
 tests/
 docs/
-data/
 
 # Git
 .git/
