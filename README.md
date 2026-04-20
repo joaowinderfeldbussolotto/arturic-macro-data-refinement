@@ -40,7 +40,7 @@ macro-data-refinement/
 ├── scripts/
 │   └── run_pipeline.py          # Standalone CLI runner
 ├── tests/
-│   └── test_validator.py        # 27 unit tests, one per rule / edge case
+│   └── test_validator.py        # 32 unit tests, one per rule / edge case
 ├── Dockerfile
 ├── docker-compose.yml
 └── requirements.txt

@@ -129,18 +129,19 @@ def test_rule7_nora_k_before_termination():
     assert run([s])[0].valid_entries == 1
 
 
-def test_rule7_nora_k_on_termination_day():
-    # Nov 15 is the termination date — entries ON this date should still pass
-    # (terminated "effective Nov 15" means AFTER this date)
+def test_rule7_nora_k_on_termination_day_weekend_rejected():
+    # Nov 15, 2025 is Saturday, so Rule 12 applies to the whole session.
     s = make_session(processor="Nora.K", timestamp="2025-11-15T10:00:00")
-    # Saturday — also triggers Rule 12, use Monday Nov 17
-    s2 = make_session(processor="Nora.K", timestamp="2025-11-17T10:00:00")
-    assert run([s2])[0].valid_entries == 0  # after termination
+    result = run([s])[0]
+    assert result.valid_entries == 0
+    assert any(reason.startswith("weekend_session:") for reason in result.rejected[0].reasons)
 
 
-def test_rule7_nora_k_after_termination():
+def test_rule7_nora_k_after_termination_on_weekday():
     s = make_session(processor="Nora.K", timestamp="2025-11-20T10:00:00")
-    assert run([s])[0].valid_entries == 0
+    result = run([s])[0]
+    assert result.valid_entries == 0
+    assert "terminated_processor:Nora.K" in result.rejected[0].reasons
 
 
 # ── Rule 8+9: Dept-Bin authorization matrix ───────────────────────────────────
