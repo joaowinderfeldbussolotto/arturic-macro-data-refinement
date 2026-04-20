@@ -1,18 +1,22 @@
 from fastapi.testclient import TestClient
+import pytest
 
 from app.main import app
 
 
-client = TestClient(app)
+@pytest.fixture
+def client() -> TestClient:
+    with TestClient(app) as test_client:
+        yield test_client
 
 
-def test_health_v1() -> None:
+def test_health_v1(client: TestClient) -> None:
     response = client.get("/api/v1/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
-def test_report_v1_has_summary() -> None:
+def test_report_v1_has_summary(client: TestClient) -> None:
     response = client.get("/api/v1/report")
     assert response.status_code == 200
     payload = response.json()
@@ -20,14 +24,14 @@ def test_report_v1_has_summary() -> None:
     assert "sessions" in payload
 
 
-def test_result_v1_has_expected_keys() -> None:
+def test_result_v1_has_expected_keys(client: TestClient) -> None:
     response = client.get("/api/v1/result")
     assert response.status_code == 200
     payload = response.json()
     assert set(payload.keys()) == {"final_sum", "valid_entries", "total_entries"}
 
 
-def test_sessions_filters_v1() -> None:
+def test_sessions_filters_v1(client: TestClient) -> None:
     response = client.get("/api/v1/sessions", params={"department": "MDR", "valid_only": "true"})
     assert response.status_code == 200
     sessions = response.json()
@@ -36,6 +40,6 @@ def test_sessions_filters_v1() -> None:
     assert all(session["valid_entries"] > 0 for session in sessions)
 
 
-def test_session_not_found_v1() -> None:
+def test_session_not_found_v1(client: TestClient) -> None:
     response = client.get("/api/v1/sessions/UNKNOWN-SESSION")
     assert response.status_code == 404
