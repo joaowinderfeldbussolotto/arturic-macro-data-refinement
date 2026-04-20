@@ -21,21 +21,23 @@ Session files came in three formats:
 - **CSV** — one entry per row, grouped by `session_id`.
 - **Plain text / `.txt`** — WB-formatted key/value session files with entry lines (`REF`, `BIN`, `READING`, `TYPE`).
 
-A unified ingester normalizes all three formats into a shared `Session` Pydantic model before any validation occurs.
+A unified ingester normalizes all three formats into a shared `Session` Pydantic model before any validation occurs. Files are discovered via recursive walk across all department folders, regardless of location — cross-department files are parsed by format, not by folder.
 
 ### Step 3 — Validation (12 Rules)
 
 Rules 1–6 (Processing Manual) cover department, processor, bin, category, value sign, and Q4 2025 timestamp scope. Rules 7–12 (Compliance Annex) add Nora.K's termination on November 15, the dept–bin authorization matrix, a value ceiling of < 1000.00, duplicate session ID deduplication (first-by-timestamp retained), and weekday-only sessions.
 
+Validation operates at two levels: session-level checks (Rules 1, 2, 6, 12) that invalidate all entries in a session if triggered, and entry-level checks (Rules 3–5, 7–10) applied individually. A single entry may accumulate multiple violation reasons; the rejection breakdown counts all violations, not just the first per entry.
+
 ## Anomalies Encountered
 
-1. **Corrupted value fields across all sources** — 32 files contained non-numeric values (`N/A`, `NULL`, `---`, `ERROR`) in value fields and were skipped at ingestion time (22 `.mdr`, 6 `.csv`, 4 `.txt`).
+1. **Corrupted value fields** — 32 files contained non-numeric values (`N/A`, `NULL`, `---`, `ERROR`) in value fields and were skipped at ingestion time (22 `.mdr`, 6 `.csv`, 4 `.txt`).
 
-2. **Invalid session identities** — Session-level validation rejected large volumes tied to non-authorized department codes (`HR`, `QA`, `TESTING`) and unrecognized processor codes (`Cross.R`, `Harmon.D`, `Webb.T`). Rejection counts were 197 (`invalid_department`) and 152 (`invalid_processor`).
+2. **Invalid session identities** — 197 entry-rejections were tied to non-authorized department codes (`HR`, `QA`, `TESTING`, `MR`) and 152 to unrecognized processor codes (`Cross.R`, `Harmon.D`, `Webb.T`). These are session-level failures that propagate to every entry in the session.
 
-3. **Duplicate session IDs** — Rule 11 deduplication removed 15 sessions by retaining only the earliest timestamp per `session_id`.
+3. **Cross-department duplicate session IDs** — The dataset contains 32 files placed in the "wrong" department folder. Of these, 15 carry a `session_id` that collides with an existing session in the correct folder — always a different department using an MDR-namespaced ID (e.g., `MDR-0018` exists both as an MDR session and as an SA session). Rule 11 deduplication retains the earliest timestamp per `session_id`, which in all 15 cases was the MDR original, discarding the cross-department copy. The remaining 17 unique cross-folder sessions are either invalid-department traps (`HR`, `QA`, `TESTING`) or legitimate sessions whose entries are rejected by the dept–bin authorization matrix.
 
-4. **Department/bin authorization failures** — 186 entries were rejected by Rules 8–9 (`unauthorised_bin_for_dept`), primarily from bins that were valid in isolation but forbidden for the session's department.
+4. **Department/bin authorization failures** — 186 violation counts were recorded for `unauthorised_bin_for_dept` (Rules 8–9). These are entries using bins valid in isolation but forbidden for their session's department (e.g., `SP` in MDR, `BL` in WB).
 
 5. **Temporal and personnel compliance** — 143 entries were outside the Q4 2025 window, 110 occurred on weekends, and 107 were invalid due to Nora.K post-termination handling.
 
