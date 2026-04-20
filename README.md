@@ -105,6 +105,8 @@ terraform apply -target=module.ecr
 terraform apply
 ```
 
+**Deployment status:** The infrastructure was successfully deployed to `us-east-1` and validated end-to-end. Post-validation, all resources were cleaned up to avoid recurring AWS costs. See [infra/DEPLOY.md](infra/DEPLOY.md) for detailed setup and teardown procedures.
+
 ## Validation rules
 
 | # | Rule | Source |
